@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 
 app = Flask(__name__)
 app.secret_key = "supersecret"
 
-# Simpan user sementara (harusnya database, tapi ini contoh simple)
+# Simpan user sementara (sementara dict, harusnya database)
 users = {}
 
 # --- HOMEPAGE ---
@@ -11,7 +11,7 @@ users = {}
 @app.route("/homepage")
 def homepage():
     if "username" in session:
-        return render_template("user/homepage.html")  
+        return render_template("user/homepage.html", username=session["username"])
     return redirect(url_for("login"))
 
 # --- REGISTER ---
@@ -29,9 +29,9 @@ def register():
         # Simpan user baru
         users[email] = {"username": username, "password": password}
 
-        # Auto login setelah daftar
-        session["username"] = username
-        return redirect(url_for("homepage"))
+        # Setelah register → suruh login dulu
+        flash("Registrasi berhasil, silakan login!", "success")
+        return redirect(url_for("login"))
 
     return render_template("user/register.html")
 
@@ -39,13 +39,28 @@ def register():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form["email"]
+        identifier = request.form["email"]  # bisa email atau username
         password = request.form["password"]
 
-        if email not in users or users[email]["password"] != password:
-            return render_template("user/login.html", error="Email atau password salah!")
+        user = None
 
-        session["username"] = users[email]["username"]
+        # Cek apakah input adalah email yang terdaftar
+        if identifier in users:
+            user = users[identifier]
+        else:
+            # Cek apakah input cocok dengan username
+            for email, data in users.items():
+                if data["username"] == identifier:
+                    user = data
+                    identifier = email  # simpan email untuk session
+                    break
+
+        if not user or user["password"] != password:
+            return render_template("user/login.html", error="Email/Username atau password salah!")
+
+        # Simpan ke session
+        session["username"] = user["username"]
+        session["email"] = identifier
         return redirect(url_for("homepage"))
 
     return render_template("user/login.html")
@@ -54,10 +69,11 @@ def login():
 # --- LOGOUT ---
 @app.route("/logout")
 def logout():
-    session.pop("username", None)
+    session.clear()
+    flash("Anda sudah logout.", "info")
     return redirect(url_for("login"))
 
-# --- CONCERT (contoh) ---
+# --- CONTOH HALAMAN LAIN ---
 @app.route("/concert")
 def concert():
     if "username" not in session:
@@ -71,9 +87,8 @@ def account():
     return render_template(
         "user/account.html",
         username=session["username"],
-        email=session.get("email", "unknown")
+        email=session["email"]
     )
-
 
 @app.route("/payment")
 def payment():
@@ -86,6 +101,6 @@ def success():
     if "username" not in session:
         return redirect(url_for("login"))
     return render_template("user/success.html")
-    
+
 if __name__ == "__main__":
     app.run(debug=True)

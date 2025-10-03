@@ -1,0 +1,1 @@
+"Registrasi berhasil, silakan login!",
