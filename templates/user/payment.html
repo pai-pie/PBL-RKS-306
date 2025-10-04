@@ -5,19 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Payment - GuardianTix</title>
   <link rel="stylesheet" href="/static/css/user/payment.css">
-  <style>
-    .qr-dummy {
-      display: inline-block;
-      background: #000;
-      color: #fff;
-      font-family: monospace;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 15px;
-      line-height: 1.2;
-      text-align: center;
-    }
-  </style>
 </head>
 <body>
 
@@ -31,12 +18,18 @@
     <label for="method">Choose Payment Method:</label>
     <select id="method" onchange="payment.chooseMethod(this.value)">
       <option value="">-- Select Magical Payment --</option>
+<<<<<<< HEAD
       <option value="QR">QR Code</option>
       <option value="Virtual Account">Virtual Account</option>
+=======
+      <option value="E-Wallet">E-Wallet</option>
+      <option value="Bank Transfer">Bank Transfer</option>
+>>>>>>> ec8f950d47651a3238c41233eab0d535003be91b
     </select>
 
     <div class="payment-details" id="paymentDetails"></div>
 
+<<<<<<< HEAD
     <button id="confirmBtn" onclick="payment.confirm()" disabled>
       Complete Magical Payment
     </button>
@@ -89,3 +82,11 @@ const payment = {
   </script>
 </body>
 </html>
+=======
+    <button onclick="payment.confirm()">Complete Magical Payment</button>
+  </div>
+
+  <script src="/static/script/user/payment.js"></script>
+</body>
+</html>
+>>>>>>> ec8f950d47651a3238c41233eab0d535003be91b

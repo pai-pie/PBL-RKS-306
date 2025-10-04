@@ -29,22 +29,3 @@
   <script src="/static/script/user/success.js"></script>
 </body>
 </html>
-
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const method = params.get('method') || 'Unknown';
-
-  // contoh data ticket bisa kamu ganti sesuai logic kamu
-  const ticketDetails = `
-    <div>
-      <strong>Ticket Type:</strong> Standard<br>
-      <strong>Payment Method:</strong> ${method}
-    </div>
-  `;
-
-  document.getElementById('ticketDetails').innerHTML = ticketDetails;
-
-  // Contoh kode booking random
-  const code = `MAGIC-${new Date().toISOString().slice(2,10).replace(/-/g,"")}-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
-  document.getElementById('bookingCode').textContent = `Enchantment Code: ${code}`;
-</script>

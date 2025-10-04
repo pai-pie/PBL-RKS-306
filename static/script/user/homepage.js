@@ -1,18 +1,33 @@
 // static/script/user/homepage.js
 
 class BookingModal {
-    constructor(modalId) {
+    constructor(modalId, closeBtnId) {
         this.modal = document.getElementById(modalId);
-        this.closeBtn = this.modal.querySelector(".close"); // tombol X di modal
-        this.selectedType = null;
-        this.selectedPrice = null;
+        this.closeBtn = document.getElementById(closeBtnId);
 
         // Tutup modal kalau klik tombol close
         this.closeBtn.onclick = () => {
             this.close();
         };
 
+<<<<<<< HEAD
         // Tutup modal kalau klik di luar modal
+=======
+        // Tutup modal kalau klik di luar modal-content
+        window.onclick = (event) => {// static/script/user/homepage.js
+
+class BookingModal {
+    constructor(modalId) {
+        this.modal = document.getElementById(modalId);
+        this.closeBtn = this.modal.querySelector(".close"); // cari tombol close di dalam modal
+
+        // Tutup modal kalau klik tombol close
+        this.closeBtn.onclick = () => {
+            this.close();
+        };
+
+        // Tutup modal kalau klik di luar modal-content
+>>>>>>> ec8f950d47651a3238c41233eab0d535003be91b
         window.onclick = (event) => {
             if (event.target === this.modal) {
                 this.close();
@@ -21,7 +36,11 @@ class BookingModal {
     }
 
     open(city) {
+<<<<<<< HEAD
         // Set nama kota di modal (kalau ada elemen #modalCity)
+=======
+        // Boleh tampilkan nama kota biar lebih dinamis
+>>>>>>> ec8f950d47651a3238c41233eab0d535003be91b
         const citySpan = this.modal.querySelector("#modalCity");
         if (citySpan) {
             citySpan.textContent = city;
@@ -33,6 +52,7 @@ class BookingModal {
     close() {
         this.modal.style.display = "none";
     }
+<<<<<<< HEAD
 
     // Pilih jenis tiket
     select(element, type) {
@@ -59,3 +79,33 @@ class BookingModal {
 
 // buat object global biar bisa dipakai di onclick html
 window.bookingModal = new BookingModal("ticketModal");
+=======
+}
+
+// buat object global biar bisa dipanggil di onclick html
+window.bookingModal = new BookingModal("ticketModal");
+
+            if (event.target === this.modal) {
+                this.close();
+            }
+        };
+    }
+
+    open(city) {
+        // Boleh tampilkan nama kota biar lebih dinamis
+        const citySpan = this.modal.querySelector("#modalCity");
+        if (citySpan) {
+            citySpan.textContent = city;
+        }
+
+        this.modal.style.display = "block";
+    }
+
+    close() {
+        this.modal.style.display = "none";
+    }
+}
+
+// buat object global biar bisa dipanggil di onclick html
+window.bookingModal = new BookingModal("ticketModal", "selectBtn");
+>>>>>>> ec8f950d47651a3238c41233eab0d535003be91b
