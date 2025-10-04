@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment - GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/user/payment.css">
+  <style>
+    .qr-dummy {
+      display: inline-block;
+      background: #000;
+      color: #fff;
+      font-family: monospace;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 15px;
+      line-height: 1.2;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Magical Payment</h1>
+    <div class="ticket-info">
+      <div class="ticket-type" id="ticketType"></div>
+      <div class="ticket-price" id="ticketPrice"></div>
+    </div>
+
+    <label for="method">Choose Payment Method:</label>
+    <select id="method" onchange="payment.chooseMethod(this.value)">
+      <option value="">-- Select Magical Payment --</option>
+      <option value="QR">QR Code</option>
+      <option value="Virtual Account">Virtual Account</option>
+    </select>
+
+    <div class="payment-details" id="paymentDetails"></div>
+
+    <button id="confirmBtn" onclick="payment.confirm()" disabled>
+      Complete Magical Payment
+    </button>
+  </div>
+
+  <script>
+const payment = {
+  chooseMethod(method) {
+    const details = document.getElementById("paymentDetails");
+    const confirmBtn = document.getElementById("confirmBtn");
+
+    if (method === "QR") {
+      details.innerHTML = `
+        <h3>Scan QR to Pay</h3>
+        <div class="qr-dummy">
+        █▀▀█ █▀▀ █▀▀█<br>
+        █▄▄█ █▀▀ █▄▄▀<br>
+        ▀░░▀ ▀▀▀ ▀░▀▀
+        </div>
+        <p style="margin-top:10px;">Use any supported e-wallet app to scan this magical QR.</p>
+      `;
+      details.style.display = "block";
+      confirmBtn.disabled = false;
+    } else if (method === "Virtual Account") {
+      details.innerHTML = `
+        <h3>Virtual Account Number</h3>
+        <p>Bank: Guardian Bank</p>
+        <p>VA Number: <strong>1234-5678-9012-3456</strong></p>
+      `;
+      details.style.display = "block";
+      confirmBtn.disabled = false;
+    } else {
+      details.innerHTML = "";
+      details.style.display = "none";
+      confirmBtn.disabled = true;
+    }
+  },
+
+  confirm() {
+    const selectedMethod = document.getElementById("method").value;
+    if (!selectedMethod) {
+      alert("⚠️ Silakan pilih metode pembayaran terlebih dahulu!");
+      return;
+    }
+
+    // langsung redirect ke halaman success tanpa popup
+    window.location.href = `/success?method=${encodeURIComponent(selectedMethod)}`;
+  }
+};
+  </script>
+</body>
+</html>

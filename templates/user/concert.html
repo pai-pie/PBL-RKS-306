@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Mystic Symphony World Tour - GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/user/concert.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav>
+    <div class="logo">GuardianTix</div>
+    <ul>
+      <li><a href="./homepage.html">Home</a></li>
+      <li><a href="./concert.html" style="color: #C8A2C8;">Concerts</a></li>
+    </ul>
+    <div id="authSection" class="user-info"></div>
+  </nav>
+
+  <!-- Artist Header -->
+  <div class="artist-header">
+    <h1 class="artist-name">Ethereal Orchestra</h1>
+    <p class="tour-title">The Mystic Symphony World Tour 2024</p>
+    <div class="rating" style="font-size: 1.3em;">⭐ 5.0 | Classical Music Experience</div>
+  </div>
+
+  <!-- Tour Dates -->
+  <section>
+    <h2 class="section-title">Tour Dates & Locations</h2>
+    
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <select class="filter-select" id="cityFilter">
+          <option value="all">All Cities</option>
+          <option value="jakarta">Jakarta</option>
+          <option value="bandung">Bandung</option>
+          <option value="surabaya">Surabaya</option>
+          <option value="bali">Bali</option>
+        </select>
+        
+        <select class="filter-select" id="monthFilter">
+          <option value="all">All Months</option>
+          <option value="december">December 2024</option>
+          <option value="january">January 2025</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Concerts Grid -->
+    <div class="concerts-grid" id="concertsContainer"></div>
+  </section>
+
+  <!-- Modal -->
+  <div id="ticketModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="bookingModal.close()">&times;</span>
+      <h2 id="modalTitle" style="color: #FFD700;">Book Tickets</h2>
+      <p id="modalInfo" style="color: #C8A2C8;"></p>
+
+      <div class="ticket-options">
+        <div class="ticket-card" onclick="bookingModal.select(this,'Standard')">
+          <h4>Standard</h4>
+          <p>Rp 450.000</p>
+          <small style="color: #C8A2C8;">Regular seating</small>
+        </div>
+        <div class="ticket-card" onclick="bookingModal.select(this,'Premium')">
+          <h4>Premium</h4>
+          <p>Rp 850.000</p>
+          <small style="color: #C8A2C8;">Better seating + souvenir</small>
+        </div>
+        <div class="ticket-card" onclick="bookingModal.select(this,'VIP')">
+          <h4>VIP</h4>
+          <p>Rp 1.250.000</p>
+          <small style="color: #C8A2C8;">Front row + meet & greet</small>
+        </div>
+      </div>
+
+      <button id="selectBtn" onclick="bookingModal.confirm()">Select Tickets</button>
+    </div>
+  </div>
+
+  <script src="/static/script/user/concert.js"></script>
+</body>
+</html>

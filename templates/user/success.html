@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Success - GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/user/succes.css">
+</head>
+<body>
+
+  <!-- Confetti container -->
+  <div class="confetti" id="confetti"></div>
+
+  <div class="container">
+    <div class="success-icon">✨</div>
+    <h1>Magical Purchase Complete!</h1>
+    
+    <div class="celebration">Your enchanted tickets are ready!</div>
+    
+    <div class="details" id="ticketDetails"></div>
+    <div class="code" id="bookingCode"></div>
+    
+    <div class="buttons">
+      <button onclick="ticket.download()">📜 Download E-Ticket Scroll</button>
+      <button class="back" onclick="ticket.goHome()">🏰 Return to Great Hall</button>
+    </div>
+  </div>
+
+  <script src="/static/script/user/success.js"></script>
+</body>
+</html>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const method = params.get('method') || 'Unknown';
+
+  // contoh data ticket bisa kamu ganti sesuai logic kamu
+  const ticketDetails = `
+    <div>
+      <strong>Ticket Type:</strong> Standard<br>
+      <strong>Payment Method:</strong> ${method}
+    </div>
+  `;
+
+  document.getElementById('ticketDetails').innerHTML = ticketDetails;
+
+  // Contoh kode booking random
+  const code = `MAGIC-${new Date().toISOString().slice(2,10).replace(/-/g,"")}-${Math.random().toString(36).substring(2,6).toUpperCase()}`;
+  document.getElementById('bookingCode').textContent = `Enchantment Code: ${code}`;
+</script>

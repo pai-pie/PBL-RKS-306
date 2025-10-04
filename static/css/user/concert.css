@@ -1,0 +1,191 @@
+body { 
+  margin: 0; 
+  font-family: 'Georgia', serif; 
+  color: #FDF6E3; 
+  background: #2E2A30;
+}
+header, section, footer { padding: 20px; }
+nav { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 15px 20px; 
+  background: #1a1a2e; 
+  border-bottom: 2px solid #FFD700;
+}
+nav ul { list-style: none; display: flex; gap: 25px; margin: 0; padding: 0; }
+nav a { 
+  color: #FFD700; 
+  text-decoration: none; 
+  font-weight: bold;
+  transition: color 0.3s;
+}
+nav a:hover { color: #C8A2C8; }
+.logo { 
+  color: #FFD700; 
+  font-size: 24px; 
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.concerts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.concert-card {
+  background: linear-gradient(145deg, #1a1a2e, #2E2A30);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #C8A2C8;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s;
+}
+.concert-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(199, 62, 62, 0.2);
+  border-color: #FFD700;
+}
+
+.concert-image {
+  height: 200px;
+  background: linear-gradient(45deg, #C73E3E, #C8A2C8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+.concert-info { padding: 20px; }
+.concert-title { color: #FFD700; font-size: 1.4em; margin-bottom: 10px; }
+.concert-artist { color: #C8A2C8; font-size: 1.1em; margin-bottom: 15px; }
+.concert-details { color: #FDF6E3; margin-bottom: 15px; line-height: 1.5; }
+.concert-details i { color: #FFD700; margin-right: 8px; width: 20px; }
+.concert-price { color: #FFD700; font-size: 1.3em; font-weight: bold; margin-bottom: 15px; }
+
+.btn { 
+  display: inline-block; 
+  padding: 12px 25px; 
+  border-radius: 8px; 
+  text-decoration: none; 
+  font-weight: bold; 
+  cursor: pointer; 
+  transition: all 0.3s;
+  border: 2px solid transparent;
+  text-align: center;
+  width: 100%;
+}
+.btn-primary { background: #C73E3E; color: #FDF6E3; border-color: #FFD700; }
+.btn-primary:hover { 
+  background: #FFD700; 
+  color: #2E2A30; 
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+.filters {
+  background: #1a1a2e;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 1200px;
+  border-radius: 10px;
+  border: 1px solid #C8A2C8;
+}
+.filter-group {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.filter-select {
+  background: #2E2A30;
+  color: #FDF6E3;
+  border: 1px solid #C8A2C8;
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-family: 'Georgia', serif;
+}
+
+.section-title {
+  text-align: center;
+  color: #FFD700;
+  font-size: 2em;
+  margin: 30px 0;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+.user-info { color: #FFD700; display: flex; align-items: center; gap: 15px; }
+
+/* Modal */
+.modal { 
+  display: none; 
+  position: fixed; 
+  z-index: 1000; 
+  left: 0; top: 0; 
+  width: 100%; height: 100%; 
+  background: rgba(46, 42, 48, 0.95); 
+}
+.modal-content { 
+  background: linear-gradient(145deg, #1a1a2e, #2E2A30); 
+  color: #FDF6E3; 
+  margin: 5% auto; padding: 30px; 
+  border-radius: 15px; width: 450px; 
+  text-align: center; 
+  border: 2px solid #FFD700;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); 
+  animation: fadeIn 0.3s; 
+}
+@keyframes fadeIn { 
+  from {opacity: 0; transform: translateY(-30px);} 
+  to {opacity: 1; transform: translateY(0);} 
+}
+.close { float: right; font-size: 24px; cursor: pointer; color: #FFD700; }
+.close:hover { color: #C73E3E; }
+
+.ticket-options { display: flex; flex-direction: column; gap: 15px; margin: 25px 0; }
+.ticket-card { 
+  background: #2E2A30; 
+  padding: 20px; 
+  border-radius: 10px; 
+  cursor: pointer; 
+  border: 2px solid #C8A2C8; 
+  transition: all 0.3s; 
+  text-align: left; 
+}
+.ticket-card:hover { border-color: #FFD700; transform: translateX(5px); }
+.ticket-card.active { 
+  border-color: #FFD700; 
+  background: linear-gradient(145deg, #C73E3E, #2E2A30);
+  box-shadow: 0 5px 15px rgba(199, 62, 62, 0.3);
+}
+.ticket-card h4 { margin: 0 0 8px; color: #FFD700; font-size: 1.2em; }
+.ticket-card p { margin: 0; font-size: 16px; color: #C8A2C8; }
+
+#selectBtn { 
+  padding: 12px 30px; 
+  margin-top: 20px; 
+  background: #C73E3E; 
+  border: 2px solid #FFD700;
+  border-radius: 8px; 
+  cursor: not-allowed; 
+  font-weight: bold; 
+  opacity: 0.5; 
+  color: #FDF6E3;
+  font-size: 16px;
+  transition: all 0.3s;
+}
+#selectBtn.active { cursor: pointer; opacity: 1; }
+#selectBtn.active:hover {
+  background: #FFD700; color: #2E2A30;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+}
+
+/* Artist header */
+.artist-header { text-align: center; margin-bottom: 40px; }
+.artist-name { color: #FFD700; font-size: 2.5em; margin-bottom: 10px; }
+.tour-title { color: #C8A2C8; font-size: 1.5em; margin-bottom: 20px; }

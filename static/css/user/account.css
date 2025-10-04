@@ -1,0 +1,95 @@
+body {
+  background: #1a1625;
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: #0b0720;
+  color: #ffcc00;
+}
+
+.navbar a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: #fff;
+}
+
+.welcome-card {
+  background: #201737;
+  border: 2px solid #ffcc00;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  margin: 20px auto;
+  width: 80%;
+}
+
+.welcome-card h1 {
+  color: #ffcc00;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+}
+
+.stat-box {
+  flex: 1;
+  margin: 0 10px;
+  padding: 15px;
+  background: #2a2045;
+  border-radius: 8px;
+  border: 1px solid #ffcc00;
+}
+
+.main-content {
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
+  margin: 20px auto;
+}
+
+.profile-card, .tickets-card, .quick-actions {
+  background: #2a2045;
+  border: 1px solid #ffcc00;
+  border-radius: 10px;
+  padding: 10px;
+  width: 40%;
+}
+
+.quick-actions {
+  width: 80%;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.btn {
+  background: #ffcc00;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px 5px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-download {
+  background: #ff3c3c;
+  color: #fff;
+}
+
+footer {
+  background: #0b0720;
+  text-align: center;
+  padding: 20px;
+  margin-top: 30px;
+  color: #ffcc00;
+}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Account - Guardiantix</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user/account.css') }}">
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">GuardianTix</div>
+    <nav>
+      
+  
+    </nav>
+    <div class="user-info">
+      Hello, {{ username }} |
+      <a href="{{ url_for('homepage') }}">Home</a> |
+      <a href="{{ url_for('account') }}">My Account</a> | 
+      <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+  </header>
+
+  <!-- WELCOME CARD -->
+  <section class="welcome-card">
+    <h1>✨ Welcome, {{ username }}! ✨</h1>
+    <p>Your magical journey began on September 15, 2024</p>
+    <div class="stats">
+      <div class="stat-box"><span>2</span><br>Total Tickets</div>
+      <div class="stat-box"><span>0</span><br>Upcoming Events</div>
+      <div class="stat-box"><span>2024</span><br>Member Since</div>
+    </div>
+  </section>
+
+  <!-- PROFILE + TICKETS -->
+  <section class="main-content">
+    <div class="profile-card">
+      <h2>🧙 Profile Information</h2>
+      <p><b>Name:</b> {{ username }}</p>
+      <p><b>Owl Post Address:</b> {{ email }}</p>
+      <p><b>Member Since:</b> September 15, 2024</p>
+      <p><b>Magical Status:</b> Enchanted Member</p>
+      <button class="btn">Edit Profile</button>
+    </div>
+
+    <div class="tickets-card">
+      <h2>🎟 My Tickets</h2>
+      <div class="ticket">
+        <b>MAGIC-001</b><br>
+        VIP - The Mystic Symphony World Tour<br>
+        December 15, 2024 | Jakarta Convention Center<br>
+        <button class="btn btn-download">Download Ticket</button>
+      </div>
+      <div class="ticket">
+        <b>MAGIC-002</b><br>
+        Premium - The Mystic Symphony World Tour<br>
+        December 18, 2024 | Bandung Convention Hall<br>
+        <button class="btn btn-download">Download Ticket</button>
+      </div>
+   
+    </div>
+  </section>
+
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Need Magical Assistance?<br>
+    Owl Post Hours: Monday - Friday, 09:00 - 17:00</p>
+    <p>📞 <a href="tel:+621234567">+62 123 4567</a> | 
+       📧 <a href="mailto:support@guardiantix.com">support@guardiantix.com</a></p>
+    <p>© 2024 GuardianTix — All rights reserved.</p>
+  </footer>
+</body>
+</html>

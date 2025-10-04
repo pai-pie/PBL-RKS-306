@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - GuardianTix</title>
+  <link rel="stylesheet" href="/static/css/admin.css">
+</head>
+<body>
+  <header>GuardianTix - Admin Panel</header>
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <a href="#" class="active" onclick="showSection('dashboard')">📊 Dashboard</a>
+      <a href="#" onclick="showSection('events')">🎵 Events</a>
+      <a href="#" onclick="showSection('tickets')">🎫 Tickets</a>
+      <a href="#" onclick="showSection('transactions')">💳 Transactions</a>
+      <a href="#" onclick="showSection('users')">👤 Users</a>
+      <a href="#" onclick="showSection('reports')">📑 Reports</a>
+      <a href="#" onclick="showSection('support')">📞 Support</a>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Dashboard -->
+      <div id="dashboard" class="card section">
+        <h2>Dashboard Overview</h2>
+        <p style="color: #C8A2C8; font-size: 1.1em;">Welcome Admin 👋 Manage your events and track performance</p>
+        
+        <div class="summary-grid">
+          <div class="summary-card">
+            <h3>🎵 Total Events</h3>
+            <p>Active Events: <b>3</b></p>
+            <p>Upcoming: <b>2</b></p>
+          </div>
+          <div class="summary-card">
+            <h3>🎫 Tickets Sales</h3>
+            <p>Total Sold: <b>1,200</b></p>
+            <p>Revenue: <b>Rp 850M</b></p>
+          </div>
+          <div class="summary-card">
+            <h3>👤 Users</h3>
+            <p>Registered: <b>250</b></p>
+            <p>Active Today: <b>45</b></p>
+          </div>
+          <div class="summary-card">
+            <h3>💳 Transactions</h3>
+            <p>Completed: <b>980</b></p>
+            <p>Pending: <b>20</b></p>
+          </div>
+          <div class="summary-card">
+            <h3>📑 Reports</h3>
+            <p>Last Report: <b>Sept 2025</b></p>
+            <p>Generated: <b>15 reports</b></p>
+          </div>
+          <div class="summary-card">
+            <h3>📞 Support</h3>
+            <p>Pending Tickets: <b>5</b></p>
+            <p>Resolved Today: <b>12</b></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Events -->
+      <div id="events" class="card section" style="display:none;">
+        <h2>Manage Events</h2>
+        <button class="btn-primary">+ Add New Event</button>
+        <table>
+          <tr>
+            <th>Event Name</th>
+            <th>Date</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          <tr>
+            <td>The Mystic Symphony</td>
+            <td>December 15, 2024</td>
+            <td>Jakarta Convention Center</td>
+            <td class="status-paid">Active</td>
+            <td>
+              <button class="btn-secondary">Edit</button> 
+              <button class="btn-danger">Delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td>The Mystic Symphony</td>
+            <td>December 18, 2024</td>
+            <td>Bandung Convention Hall</td>
+            <td class="status-paid">Active</td>
+            <td>
+              <button class="btn-secondary">Edit</button> 
+              <button class="btn-danger">Delete</button>
+            </td>
+          </tr>
+          <tr>
+            <td>The Mystic Symphony</td>
+            <td>December 22, 2024</td>
+            <td>Surabaya Grand Hall</td>
+            <td class="status-pending">Upcoming</td>
+            <td>
+              <button class="btn-secondary">Edit</button> 
+              <button class="btn-danger">Delete</button>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Tickets -->
+      <div id="tickets" class="card section" style="display:none;">
+        <h2>Manage Tickets</h2>
+        <table>
+          <tr>
+            <th>Ticket Type</th>
+            <th>Price</th>
+            <th>Quota</th>
+            <th>Sold</th>
+            <th>Available</th>
+          </tr>
+          <tr>
+            <td>Standard</td>
+            <td>Rp 450.000</td>
+            <td>500</td>
+            <td>420</td>
+            <td class="status-pending">80</td>
+          </tr>
+          <tr>
+            <td>Premium</td>
+            <td>Rp 850.000</td>
+            <td>300</td>
+            <td>280</td>
+            <td class="status-pending">20</td>
+          </tr>
+          <tr>
+            <td>VIP</td>
+            <td>Rp 1.250.000</td>
+            <td>200</td>
+            <td>180</td>
+            <td class="status-pending">20</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Transactions -->
+      <div id="transactions" class="card section" style="display:none;">
+        <h2>Transaction History</h2>
+        <table>
+          <tr>
+            <th>Buyer Name</th>
+            <th>Ticket Type</th>
+            <th>Payment Method</th>
+            <th>Amount</th>
+            <th>Status</th>
+          </tr>
+          <tr>
+            <td>Aulia Rahman</td>
+            <td>VIP</td>
+            <td>E-Wallet</td>
+            <td>Rp 1,250,000</td>
+            <td class="status-paid">Paid</td>
+          </tr>
+          <tr>
+            <td>Rizky Pratama</td>
+            <td>Standard</td>
+            <td>Bank Transfer</td>
+            <td>Rp 450,000</td>
+            <td class="status-pending">Pending</td>
+          </tr>
+          <tr>
+            <td>Dewi Anggraeni</td>
+            <td>Premium</td>
+            <td>Credit Card</td>
+            <td>Rp 850,000</td>
+            <td class="status-paid">Paid</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Users -->
+      <div id="users" class="card section" style="display:none;">
+        <h2>User Management</h2>
+        <table>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          <tr>
+            <td>Dewi Santoso</td>
+            <td>dewi@mail.com</td>
+            <td>0812xxxx</td>
+            <td class="status-paid">Active</td>
+            <td><button class="btn-danger">Suspend</button></td>
+          </tr>
+          <tr>
+            <td>Rizky Andika</td>
+            <td>rizky@mail.com</td>
+            <td>0813xxxx</td>
+            <td class="status-paid">Active</td>
+            <td><button class="btn-danger">Suspend</button></td>
+          </tr>
+          <tr>
+            <td>Budi Setiawan</td>
+            <td>budi@mail.com</td>
+            <td>0814xxxx</td>
+            <td class="status-pending">Inactive</td>
+            <td><button class="btn-secondary">Activate</button></td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Reports -->
+      <div id="reports" class="card section" style="display:none;">
+        <h2>Reports & Analytics</h2>
+        <p style="color: #C8A2C8;">Export sales reports and user analytics:</p>
+        <div style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+          <button class="btn-primary">📊 Download PDF Report</button>
+          <button class="btn-primary">📈 Download Excel Data</button>
+        </div>
+        <div style="margin-top: 25px;">
+          <h3 style="color: #FFD700;">Recent Reports</h3>
+          <ul style="color: #C8A2C8;">
+            <li>September 2025 - Sales Report</li>
+            <li>August 2025 - User Analytics</li>
+            <li>July 2025 - Revenue Summary</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Support -->
+      <div id="support" class="card section" style="display:none;">
+        <h2>Customer Support Tickets</h2>
+        <table>
+          <tr>
+            <th>User</th>
+            <th>Issue Type</th>
+            <th>Message</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          <tr>
+            <td>Budi Santoso</td>
+            <td>Ticket Issue</td>
+            <td>"Saya belum terima e-ticket"</td>
+            <td class="status-pending">Pending</td>
+            <td><button class="btn-primary">Resolve</button></td>
+          </tr>
+          <tr>
+            <td>Sinta Wati</td>
+            <td>Refund Request</td>
+            <td>"Bisa refund tiket?"</td>
+            <td class="status-resolved">Resolved</td>
+            <td><button class="btn-secondary">View</button></td>
+          </tr>
+          <tr>
+            <td>Ahmad Fauzi</td>
+            <td>Payment Issue</td>
+            <td>"Payment gagal tapi saldo terpotong"</td>
+            <td class="status-pending">Pending</td>
+            <td><button class="btn-primary">Resolve</button></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/script/admin.js"></script>
+</body>
+</html>
