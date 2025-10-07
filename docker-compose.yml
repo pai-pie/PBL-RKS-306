@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Nama service kita, bisa apa saja
+  db:
+    # Menggunakan citra resmi PostgreSQL versi 15 dari Docker Hub
+    image: postgres:15
+
+    # Memberi nama container agar mudah dikenali
+    container_name: guardian_tix_db
+
+    # Selalu restart container jika berhenti, kecuali kita yang menghentikannya
+    restart: unless-stopped
+
+    # Bagian terpenting: Konfigurasi database
+    environment:
+      # Docker akan OTOMATIS membaca nilai dari file .env Anda!
+      # Ini akan membuat database, user, dan password sesuai dengan yang ada di .env
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+    # Memetakan port: "PortDiKomputerAnda:PortDiDalamDocker"
+    # Ini membuat database bisa diakses dari localhost:5432
+    ports:
+      - "5432:5432"
+
+    # Menyimpan data secara permanen
+    # Ini membuat folder 'db-data' di proyek Anda untuk menyimpan semua data
+    # Jadi, data tidak akan hilang bahkan jika container dihapus
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+
