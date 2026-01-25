@@ -48,23 +48,69 @@ class GuardianTixApp:
         self.app.route("/admin/mark_paid/<int:payment_id>", methods=["POST"])(self.mark_paid)
 
         # ==========================
-        #   API ROUTES BARU - TAMBAHKAN INI
+        #   API ROUTES BARU
         # ==========================
         self.app.route("/api/update_profile", methods=["POST"])(self.update_profile)
         self.app.route("/api/user_tickets")(self.api_user_tickets)
         self.app.route("/api/user_stats")(self.api_user_stats)
         self.app.route("/api/cancel_ticket/<int:ticket_id>", methods=["POST"])(self.cancel_ticket)
         self.app.route("/api/admin/update_user_role/<int:user_id>", methods=["POST"])(self.update_user_role)
+        self.app.route("/api/delete_account", methods=["DELETE"])(self.delete_account)
 
     def create_admin_user(self):
-        """Buat admin user jika belum ada"""
+        """Buat atau perbarui admin user"""
         admin_email = "admin@guardiantix.com"
+        CORRECT_PASSWORD = 'admin12345678'
+        
+        print(f"\n{'='*60}")
+        print(f"🔄 SETUP AKUN ADMIN")
+        print(f"{'='*60}")
+        
         admin_user = self.db.get_user_by_email(admin_email)
         
         if not admin_user:
-            password_hash = generate_password_hash('admin123')
+            # Buat admin baru jika belum ada
+            password_hash = generate_password_hash(CORRECT_PASSWORD)
             self.db.create_user("System Admin", admin_email, password_hash, "admin")
-            print("Admin user created successfully.")
+            print("✅ Akun admin baru berhasil dibuat.")
+            print(f"   Email: {admin_email}")
+            print(f"   Password: {CORRECT_PASSWORD}")
+            print(f"   Panjang password: {len(CORRECT_PASSWORD)} karakter")
+        else:
+            print(f"✅ Akun admin sudah ada: {admin_user['username']}")
+            print(f"   Email: {admin_email}")
+            print(f"   Role: {admin_user.get('role', 'user')}")
+            
+            # Debug: Cek password saat ini
+            from werkzeug.security import check_password_hash
+            
+            # Test password saat ini
+            current_valid = check_password_hash(admin_user['password_hash'], CORRECT_PASSWORD)
+            print(f"   Status password saat ini: {'✅ VALID' if current_valid else '❌ TIDAK VALID'}")
+            
+            # Jika password tidak valid, update dengan hash baru
+            if not current_valid:
+                print(f"\n🔄 Memperbarui password admin...")
+                new_hash = generate_password_hash(CORRECT_PASSWORD)
+                
+                # Update hash di database
+                result = self.db.execute_query(
+                    "UPDATE users SET password_hash = %s WHERE email = %s",
+                    (new_hash, admin_email)
+                )
+                
+                if result:
+                    print(f"✅ Password admin berhasil diperbarui!")
+                    print(f"   Password: {CORRECT_PASSWORD}")
+                    
+                    # Verifikasi password baru
+                    admin_user_updated = self.db.get_user_by_email(admin_email)
+                    new_valid = check_password_hash(admin_user_updated['password_hash'], CORRECT_PASSWORD)
+                    print(f"   Verifikasi password baru: {'✅ BERHASIL' if new_valid else '❌ GAGAL'}")
+                else:
+                    print(f"❌ Gagal memperbarui password admin")
+            else:
+                print(f"   ✅ Password admin sudah valid, tidak perlu update.")
 
     # ==========================
     #   ROUTE HANDLERS - AUTH
@@ -86,6 +132,14 @@ class GuardianTixApp:
             email = request.form["email"].strip()
             password = request.form["password"].strip()
             
+            # =============================================
+            # ✅ VALIDASI PASSWORD MINIMAL 12 KARAKTER
+            # =============================================
+            if len(password) < 12:
+                flash("Password must be at least 12 characters long!", "error")
+                return render_template("user/register.html")
+            # =============================================
+            
             existing_user = self.db.get_user_by_email(email)
             if existing_user:
                 flash("Email already registered!", "error")
@@ -105,20 +159,37 @@ class GuardianTixApp:
             email = request.form["email"].strip()
             password = request.form["password"].strip()
             
+            print(f"=== 🔍 LOGIN DEBUG ===")
+            print(f"Email: {email}")
+            print(f"Password length: {len(password)}")
+            
             user = self.db.get_user_by_email(email)
-            if user and check_password_hash(user["password_hash"], password):
-                session["user_id"] = user["id"]
-                session["username"] = user["username"]
-                session["email"] = user["email"]
-                session["role"] = user["role"]
-                flash(f"Welcome back, {user['username']}!", "success")
+            if user:
+                print(f"User ditemukan: {user['username']}")
+                print(f"Role: {user.get('role', 'user')}")
                 
-                if user["role"] == 'admin':
-                    return redirect(url_for("admin_panel"))
-                else:
-                    return redirect(url_for("homepage"))
+                # Debug hash
+                print(f"Hash dari DB (50 chars): {user['password_hash'][:50]}...")
+                
+                # Cek password
+                is_valid = check_password_hash(user["password_hash"], password)
+                print(f"Password valid: {is_valid}")
+                
+                if is_valid:
+                    session["user_id"] = user["id"]
+                    session["username"] = user["username"]
+                    session["email"] = user["email"]
+                    session["role"] = user["role"]
+                    flash(f"Welcome back, {user['username']}!", "success")
+                    
+                    if user["role"] == 'admin':
+                        return redirect(url_for("admin_panel"))
+                    else:
+                        return redirect(url_for("homepage"))
             else:
-                flash("Invalid email or password!", "danger")
+                print("User tidak ditemukan di database")
+                
+            flash("Invalid email or password!", "danger")
                 
         return render_template("user/login.html")
 
@@ -174,15 +245,22 @@ class GuardianTixApp:
     @login_required
     def checkout(self):
         try:
+            print("🎯 [APP.PY] ⚡⚡⚡ CHECKOUT ROUTE CALLED! ⚡⚡⚡")
             data = request.get_json()
+            print(f"🎯 [APP.PY] User: {session.get('username')}, Data: {data}")
+            
+            user_id = session['user_id']
             event_id = data['event_id']
             tickets = data['tickets']
             payment_method = data.get('payment_method', 'BCA')
-            user_id = session['user_id']
-        
+            
+            print(f"🎯 [APP.PY] Calling db.process_checkout: user_id={user_id}, event_id={event_id}, tickets={tickets}")
+            
             # Kirim payment_method ke database
             result = self.db.process_checkout(user_id, event_id, tickets, session['username'], session['email'], payment_method)
         
+            print(f"🎯 [APP.PY] Checkout result: {result}")
+            
             if result['success']:
                 return {
                     'success': True, 
@@ -193,14 +271,17 @@ class GuardianTixApp:
                     'redirect_url': f'/payment/{result["payment_id"]}'
                 }
             else:
+                print(f"❌ [APP.PY] Checkout failed: {result['error']}")
                 return {'success': False, 'error': result['error']}, 400
             
         except Exception as e:
-            print(f"❌ Checkout error: {str(e)}")
+            print(f"❌ [APP.PY] CHECKOUT ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return {'success': False, 'error': f'System error: {str(e)}'}, 500
 
     # ==========================
-    #   API ROUTES BARU - TAMBAHKAN INI
+    #   API ROUTES BARU
     # ==========================
     
     @login_required
@@ -355,6 +436,41 @@ class GuardianTixApp:
         except Exception as e:
             print(f"Role update error: {str(e)}")
             return jsonify({'success': False, 'error': 'System error'}), 500
+
+    @login_required
+    def delete_account(self):
+        """Delete user account and all associated data"""
+        try:
+            user_id = session['user_id']
+            
+            print(f"🎯 DELETE ACCOUNT: User {user_id} requesting account deletion")
+            
+            # Delete user data from database
+            result = self.db.delete_user_account(user_id)
+            
+            if result['success']:
+                # Clear session
+                session.clear()
+                print(f"✅ Account {user_id} deleted successfully")
+                return jsonify({
+                    'success': True,
+                    'message': 'Account deleted successfully'
+                })
+            else:
+                print(f"❌ Account deletion failed: {result['error']}")
+                return jsonify({
+                    'success': False,
+                    'error': result['error']
+                }), 400
+                
+        except Exception as e:
+            print(f"❌ Account deletion error: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'success': False,
+                'error': f'System error: {str(e)}'
+            }), 500
 
     # ==========================
     #   ROUTE HANDLERS - ADMIN

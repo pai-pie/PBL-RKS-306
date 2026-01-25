@@ -9,19 +9,24 @@ class Database:
             'host': os.environ.get('DATABASE_HOST', 'localhost'),
             'user': os.environ.get('DATABASE_USER', 'root'),
             'password': os.environ.get('DATABASE_PASSWORD', 'pulupulu'),
-            'database': os.environ.get('DATABASE_NAME', 'db_konser'),
-            'port': os.environ.get('DATABASE_PORT', '3306')
+            'database': 'db_konser',
+            'port': os.environ.get('DATABASE_PORT', '3306'),
+            'auth_plugin': 'mysql_native_password'
         }
-
+    
     def get_connection(self):
-        """Dapatkan koneksi database"""
-        try:
-            config = self.db_config.copy()
-            config['ssl_disabled'] = True
-            return mysql.connector.connect(**config)
-        except mysql.connector.Error as err:
-            print(f"Database connection error: {err}")
-            return None
+        max_retries = 5
+        for attempt in range(max_retries):
+            try:
+                connection = mysql.connector.connect(**self.db_config)
+                print(f"✅ Database connection successful (attempt {attempt + 1})")
+                return connection
+            except Exception as e:
+                print(f"❌ Database connection error (attempt {attempt + 1}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(5)
+                else:
+                    return None
 
     def execute_query(self, query, params=None, fetch=False, fetch_one=False):
         """Eksekusi query dengan error handling"""
@@ -73,10 +78,28 @@ class Database:
         )
 
     def create_user(self, username, email, password_hash, role='user'):
-        return self.execute_query(
-            "INSERT INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)",
-            (username, email, password_hash, role)
-        )
+        """Create a new user in database"""
+        # =============================================
+        # ✅ Catatan: Validasi panjang password sudah dilakukan di app.py
+        # sebelum password di-hash. Fungsi ini hanya menerima password_hash
+        # yang sudah di-hash oleh werkzeug.security.generate_password_hash()
+        # =============================================
+        
+        try:
+            query = "INSERT INTO users (username, email, password_hash, role) VALUES (%s, %s, %s, %s)"
+            result = self.execute_query(query, (username, email, password_hash, role))
+            
+            if result:
+                print(f"✅ User created successfully: {username} ({email})")
+                return True
+            else:
+                print(f"❌ Failed to create user: {username}")
+                return False
+        except Exception as e:
+            print(f"❌ Database error creating user: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
 
     # ==========================
     #   EVENT OPERATIONS
@@ -137,10 +160,8 @@ class Database:
             
             print(f"🔍 Attempting to delete event {event_id}")
             
-            # Nonaktifkan foreign key checks sementara
             cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
             
-            # Delete semua data terkait
             cursor.execute("DELETE FROM orders WHERE event_id = %s", (event_id,))
             print(f"📦 Deleted {cursor.rowcount} orders")
             
@@ -150,12 +171,10 @@ class Database:
             cursor.execute("DELETE FROM tickets WHERE event_id = %s", (event_id,))
             print(f"🎫 Deleted {cursor.rowcount} tickets")
             
-            # Delete event
             cursor.execute("DELETE FROM events WHERE id = %s", (event_id,))
             deleted_rows = cursor.rowcount
             print(f"🗑️ Deleted {deleted_rows} events")
             
-            # Aktifkan kembali foreign key checks
             cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
             
             conn.commit()
@@ -218,87 +237,146 @@ class Database:
         )
 
     # ==========================
-    #   PAYMENT & ORDER OPERATIONS
+    #   PAYMENT & ORDER OPERATIONS - ✅ DEBUG EXTENSIF
     # ==========================
     
     def process_checkout(self, user_id, event_id, tickets, username, email, payment_method='VA'):
-        """Process checkout dengan transaction"""
+        """Process checkout dengan transaction - ULTRA DEBUG"""
         conn = None
         try:
+            print(f"🔍 [CHECKOUT] START: user_id={user_id}, event_id={event_id}, tickets={tickets}")
+        
             conn = self.get_connection()
             if not conn:
+                print("❌ [CHECKOUT] Database connection failed")
                 return {'success': False, 'error': 'Database connection failed'}
-                
-            cursor = conn.cursor(dictionary=True)
             
+            cursor = conn.cursor(dictionary=True)
+            print("✅ [CHECKOUT] Database connection successful")
+        
             # Hitung total & validasi stok
             total_amount = 0
             ticket_details = []
-            
+        
             for ticket_type, quantity in tickets.items():
                 if quantity <= 0:
                     continue
-                    
+                
+                print(f"🔍 [CHECKOUT] Processing ticket: {ticket_type} x{quantity}")
                 cursor.execute(
                     "SELECT id, quota, sold, price FROM tickets WHERE event_id = %s AND type_name = %s",
                     (event_id, ticket_type)
                 )
                 ticket = cursor.fetchone()
-                
+            
                 if not ticket:
+                    print(f"❌ [CHECKOUT] Ticket type {ticket_type} not found")
                     return {'success': False, 'error': f'Ticket type {ticket_type} not found'}
-                
+            
                 available = ticket['quota'] - ticket['sold']
+                print(f"🔍 [CHECKOUT] Ticket {ticket_type}: quota={ticket['quota']}, sold={ticket['sold']}, available={available}")
+            
                 if quantity > available:
+                    print(f"❌ [CHECKOUT] Not enough {ticket_type} tickets")
                     return {'success': False, 'error': f'Only {available} {ticket_type} tickets available'}
-                
+            
                 total_amount += quantity * ticket['price']
                 ticket_details.append(f"{ticket_type} x{quantity}")
-                
+            
                 # Update ticket quota
                 cursor.execute(
                     "UPDATE tickets SET sold = sold + %s WHERE event_id = %s AND type_name = %s",
                     (quantity, event_id, ticket_type)
                 )
-            
+                print(f"✅ [CHECKOUT] Updated ticket {ticket_type}: +{quantity} sold")
+        
             # Generate VA Number
             va_number = f"88{user_id:06d}{int(time.time()) % 10000:04d}"
-            
-            # Create payment - AUTO PAID
+            print(f"💰 [CHECKOUT] Total amount: {total_amount}, VA: {va_number}")
+        
+            # Convert untuk payments table
+            payment_amount = int(total_amount)
+            print(f"🔧 [CHECKOUT] Payment amount (int): {payment_amount}")
+        
+            # Insert ke payments
+            print(f"🔧 [CHECKOUT] Inserting into payments...")
             cursor.execute(
                 """INSERT INTO payments 
                 (user_id, event_id, payment_method, va_number, amount, status, expires_at) 
                 VALUES (%s, %s, %s, %s, %s, 'paid', DATE_ADD(NOW(), INTERVAL 24 HOUR))""",
-                (user_id, event_id, payment_method, va_number, total_amount)
+                (user_id, event_id, payment_method, va_number, payment_amount)
             )
             payment_id = cursor.lastrowid
-            
-            # Create order - AUTO PAID  
+            print(f"✅ [CHECKOUT] Created payment: ID {payment_id}")
+        
+            # Insert ke orders
+            print(f"🔧 [CHECKOUT] Inserting into orders...")
             cursor.execute(
                 """INSERT INTO orders 
-                (user_id, event_id, customer_name, customer_email, total_amount, payment_status, payment_id, ticket_details) 
-                VALUES (%s, %s, %s, %s, %s, 'paid', %s, %s)""",
+                (user_id, event_id, customer_name, customer_email, total_amount, payment_status, payment_id, ticket_details, order_date) 
+                VALUES (%s, %s, %s, %s, %s, 'paid', %s, %s, NOW())""",
                 (user_id, event_id, username, email, total_amount, payment_id, ', '.join(ticket_details))
             )
+            order_id = cursor.lastrowid
+            print(f"✅ [CHECKOUT] Created order: ID {order_id}")
+        
+            # VERIFY DATA SEBELUM COMMIT - DETAILED
+            print(f"🔄 [CHECKOUT] Verifying data before commit...")
+        
+            cursor.execute("SELECT * FROM payments WHERE id = %s", (payment_id,))
+            payment_check = cursor.fetchone()
+            print(f"🔄 [CHECKOUT] Payment verification: {payment_check}")
+        
+            cursor.execute("SELECT * FROM orders WHERE id = %s", (order_id,))
+            order_check = cursor.fetchone()
+            print(f"🔄 [CHECKOUT] Order verification: {order_check}")
+        
+            # COMMIT dengan error handling detail
+            print(f"🔄 [CHECKOUT] COMMITTING transaction...")
+            try:
+                conn.commit()
+                print(f"✅ [CHECKOUT] AFTER COMMIT - Transaction SUCCESS!")
             
-            conn.commit()
+                # VERIFY SETELAH COMMIT
+                print(f"🔍 [CHECKOUT] Verifying data AFTER commit...")
+                cursor.execute("SELECT * FROM payments WHERE id = %s", (payment_id,))
+                payment_after = cursor.fetchone()
+                print(f"🔍 [CHECKOUT] Payment after commit: {payment_after}")
             
+                cursor.execute("SELECT * FROM orders WHERE id = %s", (order_id,))
+                order_after = cursor.fetchone()
+                print(f"🔍 [CHECKOUT] Order after commit: {order_after}")
+            
+            except Exception as commit_error:
+                print(f"❌ [CHECKOUT] COMMIT ERROR: {commit_error}")
+                raise commit_error
+        
+            print(f"🎉 [CHECKOUT] FINAL SUCCESS: user={user_id}, order={order_id}, payment={payment_id}")
+        
             return {
                 'success': True,
                 'payment_id': payment_id,
                 'va_number': va_number,
                 'total_amount': total_amount
             }
-            
+        
         except Exception as e:
+            print(f"❌ [CHECKOUT] CRITICAL ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
             if conn:
                 conn.rollback()
-            print(f"Checkout processing error: {e}")
-            return {'success': False, 'error': str(e)}
+                print("🔄 [CHECKOUT] Transaction ROLLED BACK")
+            return {'success': False, 'error': f'Checkout failed: {str(e)}'}
         finally:
             if conn and conn.is_connected():
                 cursor.close()
                 conn.close()
+                print("🔒 [CHECKOUT] Database connection closed")
+
+    # ==========================
+    #   PAYMENT OPERATIONS
+    # ==========================
 
     def get_payment_with_details(self, payment_id):
         return self.execute_query(
@@ -318,7 +396,6 @@ class Database:
             conn = self.get_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # Get payment details
             cursor.execute("""
                 SELECT p.*, o.ticket_details, o.id as order_id 
                 FROM payments p 
@@ -333,10 +410,8 @@ class Database:
             if payment['status'] == 'paid':
                 return {'success': False, 'error': 'Payment already completed'}
             
-            # Update payment status
             cursor.execute("UPDATE payments SET status = 'paid' WHERE id = %s", (payment_id,))
             
-            # Update order status
             if payment['order_id']:
                 cursor.execute("UPDATE orders SET payment_status = 'paid' WHERE payment_id = %s", (payment_id,))
             
@@ -362,7 +437,7 @@ class Database:
                FROM orders o 
                JOIN events e ON o.event_id = e.id 
                WHERE o.user_id = %s 
-               ORDER BY o.created_at DESC""",
+               ORDER BY o.order_date DESC""",
             (user_id,), 
             fetch=True
         )
@@ -373,38 +448,69 @@ class Database:
                FROM orders o 
                JOIN events e ON o.event_id = e.id 
                JOIN users u ON o.user_id = u.id 
-               ORDER BY o.created_at DESC""",
+               ORDER BY o.order_date DESC""",
             fetch=True
         )
 
     # ==========================
-    #   ADMIN DASHBOARD DATA
+    #   ADMIN DASHBOARD DATA - ✅ DIPERBAIKI
     # ==========================
     
     def get_admin_dashboard_data(self):
-        """Ambil semua data untuk admin dashboard"""
+        """Ambil semua data untuk admin dashboard - SIMPLE FIX"""
         conn = None
         try:
             conn = self.get_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # Get events
-            cursor.execute("SELECT * FROM events ORDER BY event_date DESC")
-            events = cursor.fetchall()
+            print("🔍 [ADMIN] Getting dashboard data...")
             
-            # Get tickets with event names
+            # 1. Get events - PASTI WORK
+            cursor.execute("SELECT * FROM events ORDER BY event_date DESC")
+            events = cursor.fetchall() or []
+            print(f"✅ [ADMIN] Found {len(events)} events")
+            
+            # 2. Get tickets - PASTI WORK  
             cursor.execute("""
                 SELECT t.*, (t.quota - t.sold) as available, e.name as event_name
                 FROM tickets t JOIN events e ON t.event_id = e.id
                 ORDER BY e.name, t.price ASC
             """)
-            all_tickets = cursor.fetchall()
+            all_tickets = cursor.fetchall() or []
+            print(f"✅ [ADMIN] Found {len(all_tickets)} tickets")
             
-            # Get users
+            # 3. ✅ PERBAIKAN KRITIS: Get users dengan query SANGAT SEDERHANA
             cursor.execute("SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC")
-            users = cursor.fetchall()
+            users_raw = cursor.fetchall() or []
+            print(f"✅ [ADMIN] Found {len(users_raw)} raw users")
             
-            # Get recent transactions
+            # Process users data - hitung manual total_orders dan total_spent
+            users = []
+            for user in users_raw:
+                # Get total orders untuk user ini
+                cursor.execute("SELECT COUNT(*) as total_orders FROM orders WHERE user_id = %s", (user['id'],))
+                orders_result = cursor.fetchone()
+                total_orders = orders_result['total_orders'] if orders_result else 0
+                
+                # Get total spent untuk user ini  
+                cursor.execute("SELECT COALESCE(SUM(total_amount), 0) as total_spent FROM orders WHERE user_id = %s AND payment_status = 'paid'", (user['id'],))
+                spent_result = cursor.fetchone()
+                total_spent = spent_result['total_spent'] if spent_result else 0
+                
+                users.append({
+                    'id': user['id'],
+                    'username': user['username'],
+                    'email': user['email'],
+                    'role': user['role'],
+                    'status': 'Regular Member',  # Default value
+                    'created_at': user['created_at'],
+                    'total_orders': total_orders,
+                    'total_spent': total_spent
+                })
+            
+            print(f"✅ [ADMIN] Processed {len(users)} users")
+            
+            # 4. Get transactions
             cursor.execute("""
                 SELECT p.*, e.name as event_name, u.username as customer_name,
                        o.ticket_details, p.created_at as transaction_date
@@ -414,9 +520,10 @@ class Database:
                 LEFT JOIN orders o ON p.id = o.payment_id
                 ORDER BY p.created_at DESC LIMIT 10
             """)
-            transactions = cursor.fetchall()
+            transactions = cursor.fetchall() or []
+            print(f"✅ [ADMIN] Found {len(transactions)} transactions")
             
-            # Get transaction stats
+            # 5. Get stats
             cursor.execute("SELECT COUNT(*) as total FROM payments")
             total_transactions = cursor.fetchone()['total'] or 0
             
@@ -425,20 +532,25 @@ class Database:
             
             cursor.execute("SELECT SUM(amount) as revenue FROM payments WHERE status = 'paid'")
             revenue_result = cursor.fetchone()
-            revenue = revenue_result['revenue'] if revenue_result['revenue'] else 0
+            revenue = revenue_result['revenue'] if revenue_result and revenue_result['revenue'] else 0
+            
+            print(f"📊 [ADMIN] Final stats: transactions={total_transactions}, paid={paid_transactions}, revenue={revenue}")
             
             return {
-                'events': events or [],
-                'all_tickets': all_tickets or [],
-                'users': users or [],
-                'transactions': transactions or [],
+                'events': events,
+                'all_tickets': all_tickets,
+                'users': users,
+                'transactions': transactions,
                 'total_transactions': total_transactions,
                 'paid_transactions': paid_transactions,
                 'revenue': revenue
             }
             
         except Exception as e:
-            print(f"Error getting admin dashboard data: {e}")
+            print(f"❌ [ADMIN] CRITICAL ERROR in dashboard: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            # Return empty data rather than crashing
             return {
                 'events': [],
                 'all_tickets': [],
@@ -481,7 +593,7 @@ class Database:
         )
 
     # ==========================
-    #   USER PROFILE OPERATIONS - YANG BARU DITAMBAHKAN
+    #   USER PROFILE OPERATIONS
     # ==========================
     
     def update_user_profile(self, user_id, name, email, status):
@@ -496,9 +608,7 @@ class Database:
             )
             
             print(f"🔧 DATABASE: Update result = {result}")
-            print(f"🔧 DATABASE: Result type = {type(result)}")
             
-            # Return True jika berhasil (result tidak None), False jika gagal
             return result is not None
         except Exception as e:
             print(f"❌ DATABASE Error: {e}")
@@ -514,7 +624,7 @@ class Database:
                    o.ticket_details,
                    o.total_amount,
                    o.payment_status,
-                   o.order_date as order_date,
+                   o.order_date,
                    e.name as event_name,
                    e.event_date,
                    e.location,
@@ -531,14 +641,12 @@ class Database:
 
     def get_user_detailed_stats(self, user_id):
         """Get detailed statistics for a user"""
-        # Total tickets purchased
         total_tickets = self.execute_query(
             "SELECT COUNT(*) as count FROM orders WHERE user_id = %s",
             (user_id,), 
             fetch_one=True
         ) or {'count': 0}
         
-        # Upcoming events
         upcoming_events = self.execute_query(
             """SELECT COUNT(DISTINCT o.event_id) as count 
                FROM orders o 
@@ -548,14 +656,12 @@ class Database:
             fetch_one=True
         ) or {'count': 0}
         
-        # Total spending
         total_spent = self.execute_query(
             "SELECT COALESCE(SUM(total_amount), 0) as total FROM orders WHERE user_id = %s AND payment_status = 'paid'",
             (user_id,), 
             fetch_one=True
         ) or {'total': 0}
         
-        # User join date
         user_info = self.get_user_by_id(user_id)
         
         return {
@@ -573,7 +679,6 @@ class Database:
             conn = self.get_connection()
             cursor = conn.cursor(dictionary=True)
             
-            # Verify ticket belongs to user
             cursor.execute(
                 "SELECT * FROM orders WHERE id = %s AND user_id = %s",
                 (ticket_id, user_id)
@@ -583,7 +688,6 @@ class Database:
             if not order:
                 return {'success': False, 'error': 'Ticket not found'}
             
-            # Update order status
             cursor.execute(
                 "UPDATE orders SET payment_status = 'cancelled' WHERE id = %s",
                 (ticket_id,)
@@ -616,11 +720,64 @@ class Database:
         """Get all users with detailed information"""
         return self.execute_query(
             """SELECT 
-                   id, username, email, role, status, 
-                   created_at, 
-                   (SELECT COUNT(*) FROM orders WHERE user_id = users.id) as total_orders,
-                   (SELECT COALESCE(SUM(total_amount), 0) FROM orders WHERE user_id = users.id AND payment_status = 'paid') as total_spent
-               FROM users 
-               ORDER BY created_at DESC""",
+                   u.id, u.username, u.email, u.role, 
+                   u.created_at, 
+                   COUNT(o.id) as total_orders,
+                   COALESCE(SUM(CASE WHEN o.payment_status = 'paid' THEN o.total_amount ELSE 0 END), 0) as total_spent
+               FROM users u
+               LEFT JOIN orders o ON u.id = o.user_id
+               GROUP BY u.id, u.username, u.email, u.role, u.created_at
+               ORDER BY u.created_at DESC""",
             fetch=True
         ) or []
+
+    # ==========================
+    #   DELETE USER ACCOUNT
+    # ==========================
+    
+    def delete_user_account(self, user_id):
+        """Delete user account and all associated data"""
+        conn = None
+        try:
+            conn = self.get_connection()
+            if not conn:
+                return {'success': False, 'error': 'Database connection failed'}
+                
+            cursor = conn.cursor(dictionary=True)
+            
+            print(f"🔍 Starting account deletion for user {user_id}")
+            
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+            
+            cursor.execute("DELETE FROM payments WHERE user_id = %s", (user_id,))
+            payments_deleted = cursor.rowcount
+            print(f"💰 Deleted {payments_deleted} payments")
+            
+            cursor.execute("DELETE FROM orders WHERE user_id = %s", (user_id,))
+            orders_deleted = cursor.rowcount
+            print(f"📦 Deleted {orders_deleted} orders")
+            
+            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            user_deleted = cursor.rowcount
+            print(f"👤 Deleted {user_deleted} users")
+            
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+            
+            conn.commit()
+            
+            if user_deleted > 0:
+                print(f"🎉 Account {user_id} deleted successfully!")
+                return {'success': True}
+            else:
+                print(f"❌ User {user_id} not found for deletion")
+                return {'success': False, 'error': 'User not found'}
+                
+        except Exception as e:
+            print(f"❌ Error deleting account {user_id}: {str(e)}")
+            if conn:
+                conn.rollback()
+            return {'success': False, 'error': str(e)}
+        finally:
+            if conn and conn.is_connected():
+                cursor.close()
+                conn.close()

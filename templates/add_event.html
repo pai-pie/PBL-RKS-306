@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add New Event - GuardianTix</title>
+    <title>Add City - GuardianTix</title>
     <style>
         /* Desain dan Palet Warna Modern */
         body {
@@ -85,10 +85,10 @@
 </head>
 <body>
     <div class="container">
-        <h1>Add New Event</h1>
+        <h1>Add New City</h1>
         <form action="{{ url_for('add_event') }}" method="POST">
             <div class="form-group">
-                <label for="name">Event Name:</label>
+                <label for="name">City:</label>
                 <input type="text" id="name" name="name" required>
             </div>
             <div class="form-group">

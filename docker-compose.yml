@@ -4,14 +4,27 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - DATABASE_HOST=host.docker.internal
+      - DATABASE_HOST=db
       - DATABASE_USER=root
       - DATABASE_PASSWORD=pulupulu
       - DATABASE_NAME=db_konser
       - SECRET_KEY=d9778a048a4befc8abe12d4ce68c3f56203ccf8d414a3dd702556945a2b87d54
-
     volumes:
       - .:/app
+    depends_on:
+      - db
     restart: unless-stopped
- 
- 
+
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=pulupulu
+      - MYSQL_DATABASE=db_konser
+    ports:
+      - "3307:3306"  # Port diubah untuk hindari konflik
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

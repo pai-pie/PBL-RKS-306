@@ -74,6 +74,11 @@ body::before {
   color: #C8A2C8; 
 }
 
+.form-group {
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
 .register-container label { 
   display: block; 
   text-align: left; 
@@ -86,7 +91,7 @@ body::before {
 .register-container input { 
   width: 100%; 
   padding: 0.75rem; 
-  margin-bottom: 1rem; 
+  margin-bottom: 0.5rem; 
   border: 2px solid #C8A2C8; 
   border-radius: 8px; 
   background: #2E2A30; 
@@ -105,12 +110,20 @@ body::before {
   transform: scale(1.02);
 }
 
+.register-container input:valid {
+  border-color: #4CAF50;
+}
+
+.register-container input:invalid {
+  border-color: #C73E3E;
+}
+
 .register-container input::placeholder {
   color: #C8A2C8;
   opacity: 0.7;
 }
 
-.register-container button { 
+.submit-btn { 
   width: 100%; 
   padding: 0.85rem; 
   background: linear-gradient(135deg, #C73E3E, #A52A2A);
@@ -125,14 +138,14 @@ body::before {
   margin-top: 0.5rem;
 }
 
-.register-container button:hover { 
+.submit-btn:hover { 
   background: linear-gradient(135deg, #FFD700, #D4AC0D);
   color: #2E2A30;
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
 }
 
-.register-container button:active {
+.submit-btn:active {
   transform: translateY(0);
 }
 
@@ -154,32 +167,48 @@ body::before {
   text-decoration: underline;
 }
 
-.password-hint {
+.password-requirements {
   text-align: left;
   font-size: 0.8rem;
   color: #C8A2C8;
-  margin-top: -0.5rem;
-  margin-bottom: 1rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
-.error-message {
-  color: #C73E3E;
-  background: rgba(199, 62, 62, 0.1);
-  padding: 10px;
+.password-requirements small {
+  font-style: italic;
+}
+
+/* Flash Messages Styling */
+.flash-container {
+  margin-bottom: 1.5rem;
+}
+
+.flash-message {
+  padding: 12px 16px;
   border-radius: 8px;
-  border: 1px solid #C73E3E;
-  margin-bottom: 15px;
-  display: none;
+  margin-bottom: 10px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  text-align: left;
 }
 
-.success-message {
+.flash-message.error {
+  background-color: rgba(199, 62, 62, 0.1);
+  border-color: #C73E3E;
+  color: #ff6b6b;
+}
+
+.flash-message.success {
+  background-color: rgba(76, 175, 80, 0.1);
+  border-color: #4CAF50;
+  color: #4CAF50;
+}
+
+.flash-message.warning {
+  background-color: rgba(255, 215, 0, 0.1);
+  border-color: #FFD700;
   color: #FFD700;
-  background: rgba(255, 215, 0, 0.1);
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #FFD700;
-  margin-bottom: 15px;
-  display: none;
 }
 
 /* Animation for magical effect */
@@ -198,4 +227,17 @@ body::before {
 
 .register-container {
   animation: glow 3s ease-in-out infinite;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .register-container {
+    width: 90%;
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  body {
+    padding: 1rem;
+  }
 }
